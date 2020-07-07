@@ -1,0 +1,28 @@
+---
+title: "Covid-19 Texas Modeling"
+author: "Marissa"
+date: "7/4/2020"
+output: html_document
+---
+```{r}
+library(readxl)
+all_data <- read_excel("all_data.xlsx")
+View(all_data)
+```
+Primitive R Code to Take a look at variables. 
+
+```{r cars}
+covid <- all_data
+x = covid$Percent_Urban
+y = covid$Lethality_Rate
+cor(x,y)
+plot(x ~y)
+```
+
+
+
+```{r pressure, echo=FALSE}
+model <- lm(x~y)
+summary(model)
+```
+
