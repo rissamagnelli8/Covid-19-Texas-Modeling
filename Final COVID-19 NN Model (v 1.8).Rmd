@@ -69,7 +69,7 @@ actualVal = (texasvalidate$Lethality_Rate)*(max(texasvalidate$Lethality_Rate)-mi
 
 MSE = sum((prediction - actualVal)^2)/nrow(texasvalidate)
 MSE
-plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Test Data'))
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Validation Data'))
 
 sst = sum((texasvalidate$Lethality_Rate - mean(texasvalidate$Lethality_Rate))^2)
 ssr = sum((prediction - mean(texasvalidate$Lethality_Rate))^2)
