@@ -1,0 +1,131 @@
+---
+title: "Lethality Rate Neural Network"
+author: "Team 3"
+date: "7/25/2020"
+output: html_document
+---
+
+```{r }
+library(keras)
+library(mlbench)
+library(dplyr)
+library(magrittr)
+library(neuralnet)
+library(MASS)
+```
+
+
+```{r}
+#looks at all test data
+set.seed(123)
+texas = Covid19_Texas_Data_Final
+maxValue = apply(texas , 2 , max)
+minValue = apply(texas, 2, min)
+texas = as.data.frame(scale(texas ,center = minValue , scale = maxValue - minValue )) #standardizes the values in the dataset
+samp = sample(1:nrow(texas), 174)  
+
+
+texastrain = texas[samp,] #allocating training data
+texastv = texas[-samp,]
+texastest = slice_head(texastv, n = 35)
+print(texastest)
+texasvalidate = slice_tail(texastv, n = 35)
+print(texasvalidate)
+#allocating testing data
+#texasvalidate = texas
+allVars = colnames(texas)
+predictorVars = allVars[!allVars%in%"Lethality_Rate"]
+predictorVars = paste(predictorVars,collapse = "+")
+form = as.formula(paste("Lethality_Rate~", predictorVars, collapse = "+"))
+neuraltexas = neuralnet(form , data = texastrain  , hidden = c(14,7,3), linear.output = T)
+plot(neuraltexas, fontsize = 5 )
+prediction = compute(neuraltexas , texastest[2:20])
+
+prediction = prediction$net.result*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
+  min(texastest$Lethality_Rate)
+
+actualVal = (texastest$Lethality_Rate)*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
+  min(texastest$Lethality_Rate)
+
+MSE = sum((prediction - actualVal)^2)/nrow(texastest)
+MSE
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Test Data'))
+
+sst = sum((texastest$Lethality_Rate - mean(texastest$Lethality_Rate))^2)
+ssr = sum((prediction - mean(texastest$Lethality_Rate))^2)
+
+R_square = 1 - (ssr/sst)
+R_square
+
+```
+```{r}
+prediction = compute(neuraltexas , texasvalidate[2:20])
+
+prediction = prediction$net.result*(max(texasvalidate$Lethality_Rate)-min(texasvalidate$Lethality_Rate))+
+  min(texasvalidate$Lethality_Rate)
+
+actualVal = (texasvalidate$Lethality_Rate)*(max(texasvalidate$Lethality_Rate)-min(texasvalidate$Lethality_Rate))+
+  min(texasvalidate$Lethality_Rate)
+
+MSE = sum((prediction - actualVal)^2)/nrow(texasvalidate)
+MSE
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Test Data'))
+
+sst = sum((texasvalidate$Lethality_Rate - mean(texasvalidate$Lethality_Rate))^2)
+ssr = sum((prediction - mean(texasvalidate$Lethality_Rate))^2)
+
+R_square = 1 - (ssr/sst)
+R_square
+```
+
+
+```{r}
+#Uses lime for all test data
+library(lime)
+library(caret)
+explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
+explanation = explain(texastest[2:20], explainer, n_labels = 1, n_features = 19)
+explanation
+
+sorted_weights = explanation[c('feature','feature_weight')]
+sorted_weights$feature_weight = abs(sorted_weights$feature_weight)
+sorted_weights = sorted_weights[order(-sorted_weights$feature_weight),]
+print(sorted_weights)
+top_100 = slice_head(sorted_weights, n = 100)
+top_100_unique = unique(top_100$feature)
+print((top_100_unique))
+
+top_freq = table(top_100$feature)
+top_freq
+
+top_100 %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum =sum(feature_weight))
+
+```
+
+```{r}
+library(lime)
+library(caret)
+explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
+explanation = explain(texasvalidate[2:20], explainer, n_labels = 1, n_features = 19)
+explanation
+
+sorted_weights = explanation[c('feature','feature_weight')]
+sorted_weights$feature_weight = abs(sorted_weights$feature_weight)
+sorted_weights = sorted_weights[order(-sorted_weights$feature_weight),]
+print(sorted_weights)
+top_100 = slice_head(sorted_weights, n = 100)
+top_100_unique = unique(top_100$feature)
+print((top_100_unique))
+
+top_freq = table(top_100$feature)
+top_freq
+
+top_100 %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum =sum(feature_weight))
+```
+
