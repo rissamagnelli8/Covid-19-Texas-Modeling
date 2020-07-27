@@ -1,0 +1,25 @@
+---
+title: "Check for outliers"
+author: "Marissa"
+date: "7/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readxl)
+
+Check_Outliers <- read_excel("GitHub/Covid-19-Texas-Modeling/Check_Outliers.xlsx")
+View(Check_Outliers)
+```
+
+
+```{r cars}
+outliers <- Check_Outliers
+y= outliers$Percent_Urban
+x = outliers$Lethality_Rate
+
+cor(x,y)
+plot(x~y, xlab = 'Percentage of County that is Urban', ylab = 'Lethality Rate', main = 'Identifed Outliers with 50%, 25% and 20% Lethality')
+#For this model 
+```
+

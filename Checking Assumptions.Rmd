@@ -1,0 +1,52 @@
+---
+title: "Covid-19 Texas Modeling"
+author: "Marissa"
+date: "7/4/2020"
+output: html_document
+---
+```{r}
+library(readxl)
+covid<- Covid19_Texas_Data_Check_Assuptions 
+View(Covid19_Texas_Data_Check_Assuptions)
+
+```
+
+
+```{r}
+covid <- Covid19_Texas_Data_Check_Assuptions
+
+lmobject <-lm(covid$Lethality_Rate ~covid$Percent_Population_Poverty, data =Covid19_Texas_Data_Check_Assuptions)
+residuals <- resid(lmobject)
+plot(residuals~covid$Percent_Population_Poverty, xlab = 'Percentage in Poverty', ylab = 'Residaul', main = 'Residual vs X Plot')
+par(mfrow=c(1,2))
+plot(lmobject)
+
+```
+Primitive R Code to Take a look at variables. 
+```{r}
+x = covid$Age_65_plus_Per_Pop_Est
+y = covid$Sqrt_Lethality
+
+cor(x,y)
+plot(y~x)
+```
+
+
+```{r pressure, echo=FALSE}
+model <- lm(y ~ x  +
+ covid$Social_Distancing_Score_F + covid$Social_Distancing_Score_D)
+summary(model)
+```
+```{r}
+library(readxl)
+Covid19_Texas_Data_07_05_2020_stepwise_var <- read_excel("GitHub/Covid-19-Texas-Modeling/Covid19_Texas_Data_07_05_2020_stepwise_var.xlsx")
+View(Covid19_Texas_Data_07_05_2020_stepwise_var)
+covidsw <- Covid19_Texas_Data_07_05_2020_stepwise_var #Code from https://www.statology.org/stepwise-regression-r/#:~:text=%20A%20Complete%20Guide%20to%20Stepwise%20Regression%20in,walk%20through%20exactly%20what%20just%20happened...%20More%20
+
+intercept_only_model <- lm(covidsw$Lethality_Rate ~ 1, data = Covid19_Texas_Data_07_05_2020_stepwise_var)
+
+total_model <- lm(covidsw$Lethality_Rate ~., data = Covid19_Texas_Data_07_05_2020_stepwise_var)
+
+step(intercept_only_model, direction = 'both', scope = formula(total_model)) #Realized this isn't a great model/tactic because we want to have a higher R2, not necessarily a low p-val. 
+```
+
