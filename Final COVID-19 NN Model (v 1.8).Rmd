@@ -19,7 +19,7 @@ library(NeuralNetTools)
 
 
 ```{r}
-#Creates the NN Model and tests using test data (data from 7/09)
+#Creates the NN Model with trainig data/validates with validation data (data from 7/09)
 set.seed(123)
 texas = Covid19_Texas_Data_Final #Will need to import this Excel File
 maxValue = apply(texas , 2 , max)
@@ -28,9 +28,9 @@ texas = as.data.frame(scale(texas ,center = minValue , scale = maxValue - minVal
 samp = sample(1:nrow(texas), 174) #Generates a sample of a random 174 observations of the data set.  
 
 texastrain = texas[samp,] #allocating training data
-texastv = texas[-samp,] #allocating everything else before splitting
-texastest = slice_head(texastv, n = 35) #allocating test data
-texasvalidate = slice_tail(texastv, n = 35) #allocating validation data
+texasvt = texas[-samp,] #allocating everything else before splitting
+texasvalidate = slice_head(texasvt, n = 35) #allocating test data
+texastest = slice_tail(texasvt, n = 35) #allocating validation data
 
 allVars = colnames(texas)
 predictorVars = allVars[!allVars%in%"Lethality_Rate"] #sets predictor variables
@@ -40,60 +40,60 @@ neuraltexas = neuralnet(form , data = texastrain  , hidden = c(14,7,3), linear.o
 plot(neuraltexas, fontsize = 5 ) #Plots the network
 plotnet(mod_in = neuraltexas, rel_rsc = c(1, 3), circle_cex = 4,  cex_val = 0.7,
   circle_col = "grey", pos_col = "black", neg_col = "grey", bord_col = "black")
-prediction = compute(neuraltexas , texastest[2:20]) #Gets predictions from the NN for test data
-
-prediction = prediction$net.result*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
-  min(texastest$Lethality_Rate)#Gets residuals 
-
-actualVal = (texastest$Lethality_Rate)*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
-  min(texastest$Lethality_Rate) #Gets residuals
-
-MSE = sum((prediction - actualVal)^2)/nrow(texastest) #calculates MSE
-MSE
-plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Test Data'))
-
-sst = sum((texastest$Lethality_Rate - mean(texastest$Lethality_Rate))^2)
-ssr = sum((prediction - mean(texastest$Lethality_Rate))^2)
-
-R_square = 1 - (ssr/sst)
-R_square #Calculates R square
-
-#Adj_R_square = 1 - (((1-R_square)* (nrow(texastest)))/(nrow(texastest)-(nrow(texastest)-19-1)))
-#Adj_R_square
-#Decided R_Square was enough, this mostly done with linear models
-
-```
-```{r}
-#Validation data used on trained NN
-prediction = compute(neuraltexas , texasvalidate[2:20]) #Gets predictions
+prediction = compute(neuraltexas , texasvalidate[2:20]) #Gets predictions from the NN for test data
 
 prediction = prediction$net.result*(max(texasvalidate$Lethality_Rate)-min(texasvalidate$Lethality_Rate))+
-  min(texasvalidate$Lethality_Rate) #Calculate residuals
+  min(texasvalidate$Lethality_Rate)#Gets residuals 
 
 actualVal = (texasvalidate$Lethality_Rate)*(max(texasvalidate$Lethality_Rate)-min(texasvalidate$Lethality_Rate))+
-  min(texasvalidate$Lethality_Rate)#Calculate residuals
+  min(texasvalidate$Lethality_Rate) #Gets residuals
 
-MSE = sum((prediction - actualVal)^2)/nrow(texasvalidate) #Calculate MSE
+MSE = sum((prediction - actualVal)^2)/nrow(texasvalidate) #calculates MSE
 MSE
-plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Validation Data')) #Plot the residuals
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Validation Data'))
 
 sst = sum((texasvalidate$Lethality_Rate - mean(texasvalidate$Lethality_Rate))^2)
 ssr = sum((prediction - mean(texasvalidate$Lethality_Rate))^2)
 
+R_square = 1 - (ssr/sst)
+R_square #Calculates R square
+
+#Adj_R_square = 1 - (((1-R_square)* (nrow(texasvalidate)))/(nrow(texasvalidate)-(nrow(texasvalidate)-19-1)))
+#Adj_R_square
+#Decided R_Square was enough, this mostly done with linear models
+
+```
+```{r}
+#Test data used on trained NN
+prediction = compute(neuraltexas , texastest[2:20]) #Gets predictions
+
+prediction = prediction$net.result*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
+  min(texastest$Lethality_Rate) #Calculate residuals
+
+actualVal = (texastest$Lethality_Rate)*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
+  min(texastest$Lethality_Rate)#Calculate residuals
+
+MSE = sum((prediction - actualVal)^2)/nrow(texastest) #Calculate MSE
+MSE
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values Test Data')) #Plot the residuals
+
+sst = sum((texastest$Lethality_Rate - mean(texastest$Lethality_Rate))^2)
+ssr = sum((prediction - mean(texastest$Lethality_Rate))^2)
+
 R_square = 1 - (ssr/sst) #Calculate R-squared
 R_square
 
-#Adj_R_square = 1 - (((1-R_square)* #(nrow(texasvalidate)))/(nrow(texasvalidate)-(nrow(texasvalidate)-19-1)))
+#Adj_R_square = 1 - (((1-R_square)* #(nrow(texastest)))/(nrow(texastest)-(texastest)-19-1)))
 #Adj_R_square
 #Decided R_Square was enough, this mostly done with linear models
 ```
 
 
 ```{r}
-#Lime portion for test data
+#Lime portion for validation data
 
 explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
-explanation = explain(texastest[2:20], explainer, n_labels = 1, n_features = 19)
+explanation = explain(texasvalidate[2:20], explainer, n_labels = 1, n_features = 19)
 explanation
 plot_explanations(explanation, (font = 5))
 
@@ -187,10 +187,10 @@ plot_features(case35, ncol = 1)
 ```
 
 ```{r}
-#Lime portion for Validation Data
+#Lime portion for Test Data
 
 explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
-explanation = explain(texasvalidate[2:20], explainer, n_labels = 1, n_features = 19)
+explanation = explain(texastest[2:20], explainer, n_labels = 1, n_features = 19)
 plot_explanations(explanation, (font = 5))
 
 sorted_weights = explanation[c('feature','feature_weight')] #various methods to visualize weights
