@@ -12,13 +12,16 @@ library(dplyr)
 library(magrittr)
 library(neuralnet)
 library(MASS)
+library(lime)
+library(caret)
+library(NeuralNetTools)
 ```
 
 
 ```{r}
-#Creates the NN Model and tests using test data
+#Creates the NN Model and tests using test data (data from 7/09)
 set.seed(123)
-texas = Covid19_Texas_Data_Final
+texas = Covid19_Texas_Data_Final #Will need to import this Excel File
 maxValue = apply(texas , 2 , max)
 minValue = apply(texas, 2, min)
 texas = as.data.frame(scale(texas ,center = minValue , scale = maxValue - minValue )) #Normalizes the values in the dataset
@@ -28,7 +31,6 @@ texastrain = texas[samp,] #allocating training data
 texastv = texas[-samp,] #allocating everything else before splitting
 texastest = slice_head(texastv, n = 35) #allocating test data
 texasvalidate = slice_tail(texastv, n = 35) #allocating validation data
-print(texasvalidate)
 
 allVars = colnames(texas)
 predictorVars = allVars[!allVars%in%"Lethality_Rate"] #sets predictor variables
@@ -36,6 +38,8 @@ predictorVars = paste(predictorVars,collapse = "+")
 form = as.formula(paste("Lethality_Rate~", predictorVars, collapse = "+"))
 neuraltexas = neuralnet(form , data = texastrain  , hidden = c(14,7,3), linear.output = T) #Runs the network using trainig data
 plot(neuraltexas, fontsize = 5 ) #Plots the network
+plotnet(mod_in = neuraltexas, rel_rsc = c(1, 3), circle_cex = 4,  cex_val = 0.7,
+  circle_col = "grey", pos_col = "black", neg_col = "grey", bord_col = "black")
 prediction = compute(neuraltexas , texastest[2:20]) #Gets predictions from the NN for test data
 
 prediction = prediction$net.result*(max(texastest$Lethality_Rate)-min(texastest$Lethality_Rate))+
@@ -87,52 +91,240 @@ R_square
 
 ```{r}
 #Lime portion for test data
-library(lime)
-library(caret)
+
 explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
 explanation = explain(texastest[2:20], explainer, n_labels = 1, n_features = 19)
 explanation
+plot_explanations(explanation, (font = 5))
 
 sorted_weights = explanation[c('feature','feature_weight')] #various methods to visualize weights
-sorted_weights$feature_weight = abs(sorted_weights$feature_weight)
-sorted_weights = sorted_weights[order(-sorted_weights$feature_weight),]
-print(sorted_weights)
-top_100 = slice_head(sorted_weights, n = 100)
-top_100_unique = unique(top_100$feature)
-print((top_100_unique))
+pos_weight = subset(sorted_weights, feature_weight > 0)
+print(pos_weight)
+neg_weight = subset(sorted_weights, feature_weight < 0)
+print(neg_weight)
 
-top_freq = table(top_100$feature)
-top_freq
-
-top_100 %>% 
+pos_weight %>% 
 group_by(feature) %>% 
 summarise(n = n(),
           sum =sum(feature_weight))
+neg_weight %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum = sum(feature_weight))
+
+case1 = subset(explanation, case == 1)
+case2 = subset(explanation, case == 2)
+case3 = subset(explanation, case == 3)
+case4 = subset(explanation, case == 4)
+case5 = subset(explanation, case == 5)
+case6 = subset(explanation, case == 6)
+case7 = subset(explanation, case == 7)
+case8 = subset(explanation, case == 8)
+case9 = subset(explanation, case == 9)
+case10 = subset(explanation, case == 10)
+case11 = subset(explanation, case == 11)
+case12 = subset(explanation, case == 12)
+case13 = subset(explanation, case == 13)
+case14 = subset(explanation, case == 14)
+case15 = subset(explanation, case == 15)
+case16 = subset(explanation, case == 16)
+case17 = subset(explanation, case == 17)
+case18 = subset(explanation, case == 18)
+case19 = subset(explanation, case == 19)
+case20 = subset(explanation, case == 20)
+case21 = subset(explanation, case == 21)
+case22 = subset(explanation, case == 22)
+case23 = subset(explanation, case ==23)
+case24 = subset(explanation, case == 24)
+case25 = subset(explanation, case ==25)
+case26 = subset(explanation, case ==26)
+case27 = subset(explanation, case == 27)
+case28 = subset(explanation, case == 28)
+case29 = subset(explanation, case ==29)
+case30 = subset(explanation, case == 30)
+case31 = subset(explanation, case == 31)
+case32 = subset(explanation, case == 32)
+case33 = subset(explanation, case == 33)
+case34 = subset(explanation, case == 34)
+case35 = subset(explanation, case == 35)
+plot_features(case1, ncol = 1,) 
+plot_features(case2, ncol = 1)
+plot_features(case3, ncol = 1)
+plot_features(case4, ncol = 1)
+plot_features(case5, ncol = 1)
+plot_features(case6, ncol = 1)
+plot_features(case7, ncol = 1)
+plot_features(case8, ncol = 1)
+plot_features(case9, ncol = 1)
+plot_features(case10, ncol = 1)
+plot_features(case11, ncol = 1)
+plot_features(case12, ncol = 1)
+plot_features(case13, ncol = 1)
+plot_features(case14, ncol = 1)
+plot_features(case15, ncol = 1)
+plot_features(case16, ncol = 1)
+plot_features(case17, ncol = 1)
+plot_features(case18, ncol = 1)
+plot_features(case19, ncol = 1)
+plot_features(case20, ncol = 1)
+plot_features(case21, ncol = 1)
+plot_features(case22, ncol = 1)
+plot_features(case23, ncol = 1)
+plot_features(case24, ncol = 1)
+plot_features(case25, ncol = 1)
+plot_features(case26, ncol = 1)
+plot_features(case27, ncol = 1)
+plot_features(case28, ncol = 1)
+plot_features(case29, ncol = 1)
+plot_features(case30, ncol = 1)
+plot_features(case31, ncol = 1)
+plot_features(case32, ncol = 1)
+plot_features(case33, ncol = 1)
+plot_features(case34, ncol = 1)
+plot_features(case35, ncol = 1)
+
 
 ```
 
 ```{r}
 #Lime portion for Validation Data
-library(lime)
-library(caret)
+
 explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
 explanation = explain(texasvalidate[2:20], explainer, n_labels = 1, n_features = 19)
-explanation
+plot_explanations(explanation, (font = 5))
 
 sorted_weights = explanation[c('feature','feature_weight')] #various methods to visualize weights
-sorted_weights$feature_weight = abs(sorted_weights$feature_weight)
-sorted_weights = sorted_weights[order(-sorted_weights$feature_weight),]
-print(sorted_weights)
-top_100 = slice_head(sorted_weights, n = 100)
-top_100_unique = unique(top_100$feature)
-print((top_100_unique))
+pos_weight = subset(sorted_weights, feature_weight > 0)
+print(pos_weight)
+neg_weight = subset(sorted_weights, feature_weight < 0)
+print(neg_weight)
 
-top_freq = table(top_100$feature)
-top_freq
-
-top_100 %>% 
+pos_weight %>% 
 group_by(feature) %>% 
 summarise(n = n(),
           sum =sum(feature_weight))
+neg_weight %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum = sum(feature_weight))
+
+case1 = subset(explanation, case == 1)
+case2 = subset(explanation, case == 2)
+case3 = subset(explanation, case == 3)
+case4 = subset(explanation, case == 4)
+case5 = subset(explanation, case == 5)
+case6 = subset(explanation, case == 6)
+case7 = subset(explanation, case == 7)
+case8 = subset(explanation, case == 8)
+case9 = subset(explanation, case == 9)
+case10 = subset(explanation, case == 10)
+case11 = subset(explanation, case == 11)
+case12 = subset(explanation, case == 12)
+case13 = subset(explanation, case == 13)
+case14 = subset(explanation, case == 14)
+case15 = subset(explanation, case == 15)
+case16 = subset(explanation, case == 16)
+case17 = subset(explanation, case == 17)
+case18 = subset(explanation, case == 18)
+case19 = subset(explanation, case == 19)
+case20 = subset(explanation, case == 20)
+case21 = subset(explanation, case == 21)
+case22 = subset(explanation, case == 22)
+case23 = subset(explanation, case ==23)
+case24 = subset(explanation, case == 24)
+case25 = subset(explanation, case ==25)
+case26 = subset(explanation, case ==26)
+case27 = subset(explanation, case == 27)
+case28 = subset(explanation, case == 28)
+case29 = subset(explanation, case ==29)
+case30 = subset(explanation, case == 30)
+case31 = subset(explanation, case == 31)
+case32 = subset(explanation, case == 32)
+case33 = subset(explanation, case == 33)
+case34 = subset(explanation, case == 34)
+case35 = subset(explanation, case == 35)
+plot_features(case1, ncol = 1)
+plot_features(case2, ncol = 1)
+plot_features(case3, ncol = 1)
+plot_features(case4, ncol = 1)
+plot_features(case5, ncol = 1)
+plot_features(case6, ncol = 1)
+plot_features(case7, ncol = 1)
+plot_features(case8, ncol = 1)
+plot_features(case9, ncol = 1)
+plot_features(case10, ncol = 1)
+plot_features(case11, ncol = 1)
+plot_features(case12, ncol = 1)
+plot_features(case13, ncol = 1)
+plot_features(case14, ncol = 1)
+plot_features(case15, ncol = 1)
+plot_features(case16, ncol = 1)
+plot_features(case17, ncol = 1)
+plot_features(case18, ncol = 1)
+plot_features(case19, ncol = 1)
+plot_features(case20, ncol = 1)
+plot_features(case21, ncol = 1)
+plot_features(case22, ncol = 1)
+plot_features(case23, ncol = 1)
+plot_features(case24, ncol = 1)
+plot_features(case25, ncol = 1)
+plot_features(case26, ncol = 1)
+plot_features(case27, ncol = 1)
+plot_features(case28, ncol = 1)
+plot_features(case29, ncol = 1)
+plot_features(case30, ncol = 1)
+plot_features(case31, ncol = 1)
+plot_features(case32, ncol = 1)
+plot_features(case33, ncol = 1)
+plot_features(case34, ncol = 1)
+plot_features(case35, ncol = 1)
+
+
+```
+```{r}
+#Testing the model with data from 7/26
+texas_updated = Covid19_Texas_Data_Updated_07_26 #Will need to import this Excel File
+samp = sample(1:nrow(texas_updated), 35)
+samp2 = sample(1:nrow(texas_updated), 35)
+newsamp = texas[samp,]
+
+prediction = compute(neuraltexas , newsamp[2:20]) #Gets predictions
+
+prediction = prediction$net.result*(max(newsamp $Lethality_Rate)-min(newsamp $Lethality_Rate))+
+  min(newsamp $Lethality_Rate) #Calculate residuals
+
+actualVal = (newsamp $Lethality_Rate)*(max(newsamp $Lethality_Rate)-min(newsamp $Lethality_Rate))+
+  min(newsamp $Lethality_Rate)#Calculate residuals
+
+MSE = sum((prediction - actualVal)^2)/nrow(newsamp ) #Calculate MSE
+MSE
+plot(prediction , actualVal , xlim = c(0,.2) , ylim = c(0,.2) , pch = 20 ,col = 'red', xlab = 'Predicted Values', ylab = 'Actual Values', title('Predicted vs Actual Values 07/26 Data')) #Plot the residuals
+
+sst = sum((newsamp $Lethality_Rate - mean(newsamp $Lethality_Rate))^2)
+ssr = sum((prediction - mean(newsamp $Lethality_Rate))^2)
+
+R_square = 1 - (ssr/sst) #Calculate R-squared
+R_square
+```
+
+```{r}
+explainer = lime(texastrain, as_classifier(neuraltexas, labels = NULL))
+explanation = explain(newsamp[2:20], explainer, n_labels = 1, n_features = 19)
+plot_explanations(explanation, (font = 5))
+
+sorted_weights = explanation[c('feature','feature_weight')] #various methods to visualize weights
+pos_weight = subset(sorted_weights, feature_weight > 0)
+print(pos_weight)
+neg_weight = subset(sorted_weights, feature_weight < 0)
+print(neg_weight)
+
+pos_weight %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum =sum(feature_weight))
+neg_weight %>% 
+group_by(feature) %>% 
+summarise(n = n(),
+          sum = sum(feature_weight))
 ```
 
