@@ -1,7 +1,7 @@
 # Covid-19-Texas-Modeling
 
-Hey team!
+Hello Accenture Team!
 
-Here is a repository of the code and files thus far. You will probably need to install some packages to get these to work. For that you can usually run pip install packagename in a cell. Let me know if there are any issues or if anyone has any questions, and let me know if you want to add anything.
+Here is a repository of the code and files for the Neural Network that we have created. In this repository you will find all of our data as well as data cleanup efforts. You will also find a folder with code where we assesed data and finally a folder that houses the final verson of the Neural Network. 
 
-Also, you will Jupyer Notebooks to read/write in the code file. To do this you can just download Anaconda. Then open the Anaconda Navigator and navigate to the code to open the file. Download Anaconda here: https://www.anaconda.com/products/individual. 
+Feel free to reach out to the team if you have any questions or concerns! Cheers!
